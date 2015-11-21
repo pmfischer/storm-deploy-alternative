@@ -158,6 +158,10 @@ public class Configuration {
 			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.4.tar.gz";
 		} else if (version.equals("0.9.5")) {
 			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.5.tar.gz";
+		} else if (version.equals("0.9.6")) {
+			return "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/storm/apache-storm-0.9.6/apache-storm-0.9.6.tar.gz";
+		} else if (version.equals("0.10.0")) {
+			return "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/storm/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz";
 		} else {
 			log.info("Storm version " + version + " not currently supported!");
 		}
