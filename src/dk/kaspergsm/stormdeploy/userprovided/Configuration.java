@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import dk.kaspergsm.stormdeploy.Tools;
+import dk.kaspergsm.stormdeploy.configurations.SystemTools.PACKAGE_MANAGER;
 
 /**
  * Class used to store all information for configuration.yaml, specific to cluster to deploy
@@ -25,7 +26,9 @@ public class Configuration {
 			"storm-version", 
 			"zk-version",
 			"image","image-username",
+			"packagemanager",
 			"region",
+			"placementgroup",
 			"memory-monitor",
 			"remote-exec-preconfig",
 			"remote-exec-postconfig"));
@@ -104,6 +107,14 @@ public class Configuration {
 		}
 		return getRawConfigValue("region");
 	}
+	
+	/**
+	 * Get placement group, if any exists
+	 */
+	public String getPlacementGroup() {
+		return getRawConfigValue("placement-group");
+	}
+	
 	
 	/**
 	 * Get whether memory monitor should be executed or not
@@ -241,5 +252,12 @@ public class Configuration {
 			ret.put(daemons, e.getValue());
 		}
 		return ret;
+	}
+	
+	public PACKAGE_MANAGER getPackageManager() {
+		String pm = getRawConfigValue("packagemanager");
+		if (pm.equalsIgnoreCase("yum"))
+			return PACKAGE_MANAGER.YUM;
+		return PACKAGE_MANAGER.APT;
 	}
 }
