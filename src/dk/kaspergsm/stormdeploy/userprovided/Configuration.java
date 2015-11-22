@@ -146,22 +146,23 @@ public class Configuration {
 	 */
 	public String getStormRemoteLocation() {
 		String version = getRawConfigValue("storm-version");
+		String baseURI = "https://s3-eu-west-1.amazonaws.com/storm-releases/";
 		if (version.equals("0.8.2")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/storm-0.8.2.tar.gz";
+			return baseURI+"storm-0.8.2.tar.gz";
 		} else if (version.equals("0.9.0.1")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/storm-0.9.0.1.tar.gz";
+			return baseURI+"storm-0.9.0.1.tar.gz";
 		} else if (version.equals("0.9.2")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.2-incubating.tar.gz";
+			return baseURI+"apache-storm-0.9.2-incubating.tar.gz";
 		} else if (version.equals("0.9.3")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.3.tar.gz";
+			return baseURI+"apache-storm-0.9.3.tar.gz";
 		} else if (version.equals("0.9.4")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.4.tar.gz";
+			return baseURI+"apache-storm-0.9.4.tar.gz";
 		} else if (version.equals("0.9.5")) {
-			return "https://s3-eu-west-1.amazonaws.com/storm-releases/apache-storm-0.9.5.tar.gz";
+			return baseURI+"apache-storm-0.9.5.tar.gz";
 		} else if (version.equals("0.9.6")) {
-			return "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/storm/apache-storm-0.9.6/apache-storm-0.9.6.tar.gz";
+			return "http://mirror.cc.columbia.edu/pub/software/apache/storm/apache-storm-0.9.6/apache-storm-0.9.6.tar.gz";
 		} else if (version.equals("0.10.0")) {
-			return "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/storm/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz";
+			return "http://mirror.cc.columbia.edu/pub/software/apache/storm/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz";
 		} else {
 			log.info("Storm version " + version + " not currently supported!");
 		}
