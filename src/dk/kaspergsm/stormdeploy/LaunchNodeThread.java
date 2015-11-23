@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
+import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.StatementList;
@@ -23,7 +26,7 @@ import dk.kaspergsm.stormdeploy.userprovided.Configuration;
  */
 public class LaunchNodeThread extends Thread {
 	private static Logger log = LoggerFactory.getLogger(LaunchNodeThread.class);
-	private String _instanceType, _clustername, _region, _image, _username;
+	private String _instanceType, _clustername, _region, _placementgroup, _image, _username;
 	private Set<NodeMetadata> _newNodes = null;
 	private List<Statement> _initScript;
 	private ComputeService _compute;
@@ -50,6 +53,7 @@ public class LaunchNodeThread extends Thread {
 	 */
 	public LaunchNodeThread(ComputeService compute, Configuration config, String instanceType, String clustername, List<Integer> nodeids, List<String> daemons, Integer zkMyId) {
 		_region = config.getDeploymentLocation();
+		_placementgroup = config.getPlacementGroup();
 		_username = config.getImageUsername();
 		_image = config.getDeploymentImage();
 		_instanceType = instanceType;
@@ -73,23 +77,28 @@ public class LaunchNodeThread extends Thread {
 	@Override
 	public void run() {
 		try {
+			TemplateOptions to = new TemplateOptions()
+					.runAsRoot(false)
+					.wrapInInitScript(true)
+					.overrideLoginUser(_username)
+					.inboundPorts(Tools.getPortsToOpen())
+					.userMetadata("daemons", _daemons.toString())
+					.runScript(new StatementList(_initScript))
+					.overrideLoginCredentials(Tools.getPrivateKeyCredentials(_username))
+					.authorizePublicKey(Tools.getPublicKey());
+			Template template = _compute.templateBuilder()
+					.hardwareId(_instanceType)
+					.locationId(_region)
+					.imageId(_image)
+					.options(to).build();
+			if (template.getOptions() instanceof AWSEC2TemplateOptions && _placementgroup != null){
+				AWSEC2TemplateOptions opt = (AWSEC2TemplateOptions) template.getOptions();
+				opt.placementGroup(_placementgroup);
+			}
 			_newNodes = (Set<NodeMetadata>) _compute.createNodesInGroup(
 					_clustername,
-					_nodeids.size(),
-					_compute.templateBuilder()
-							.hardwareId(_instanceType)
-							.locationId(_region)
-							.imageId(_image)
-							.options(
-									new TemplateOptions()
-											.runAsRoot(false)
-											.wrapInInitScript(true)
-											.overrideLoginUser(_username)
-											.inboundPorts(Tools.getPortsToOpen())
-											.userMetadata("daemons", _daemons.toString())
-											.runScript(new StatementList(_initScript))
-											.overrideLoginCredentials(Tools.getPrivateKeyCredentials(_username))
-											.authorizePublicKey(Tools.getPublicKey())).build());
+					_nodeids.size(),template
+					);
 		} catch (NoSuchElementException ex) {
 			// happens often when hardwareId is not found. List all possible hardware types
 			if (ex.getMessage().toLowerCase().contains("hardwareid") && ex.getMessage().toLowerCase().contains("not found")) {
