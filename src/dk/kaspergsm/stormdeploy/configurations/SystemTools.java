@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * @author Kasper Grud Skat Madsen
  */
 public class SystemTools {
-	public enum PACKAGE_MANAGER {APT};	
+	public enum PACKAGE_MANAGER {APT,YUM};	
 	private static Logger log = LoggerFactory.getLogger(SystemTools.class);
 	
 	public static List<Statement> init(PACKAGE_MANAGER pm) {
@@ -53,6 +53,15 @@ public class SystemTools {
 			st.add(exec("apt-get install -y unzip"));
 			st.add(exec("update-alternatives --set automake /usr/bin/automake-1.10"));
 			
+		} else if (pm == PACKAGE_MANAGER.YUM) {
+			// enable EPEL
+			st.add(exec("yum-config-manager --enable epel"));
+			// Java 7 is installed by default
+			
+			// Install git
+			st.add(exec("yum -y install git"));
+			
+			// build tools are not needed since we don't build zeroMQ
 		} else {
 			log.error("PACKAGE MANAGER not supported: " + pm.toString());
 		}

@@ -4,7 +4,11 @@ import static org.jclouds.scriptbuilder.domain.Statements.exec;
 import java.util.ArrayList;
 import java.util.List;
 import org.jclouds.scriptbuilder.domain.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dk.kaspergsm.stormdeploy.Tools;
+import dk.kaspergsm.stormdeploy.configurations.SystemTools.PACKAGE_MANAGER;
 
 /**
  * Contains all methods to install Ganglia
@@ -13,22 +17,37 @@ import dk.kaspergsm.stormdeploy.Tools;
  */
 public class Ganglia {
 
+	private static Logger log = LoggerFactory.getLogger(Ganglia.class);
+	
 	/**
 	 * Install Ganglia
 	 */
-	public static List<Statement> install() {
+	public static List<Statement> install(PACKAGE_MANAGER pm) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
-		
-		// Install monitoring base
-		st.add(exec("apt-get install -y ganglia-monitor gmetad rrdtool librrds-perl librrd-dev"));
-		
-		// Install webinterface only on one node
-		st.add(Tools.execOnUI("apt-get install -q -y ganglia-webfrontend"));
-		
-		// Ensure daemons have not been started
-		st.add(exec("/etc/init.d/ganglia-monitor stop"));
-		st.add(exec("/etc/init.d/gmetad stop"));
-		
+		if (pm == PACKAGE_MANAGER.APT) {
+			// Install monitoring base
+			st.add(exec("apt-get install -y ganglia-monitor gmetad rrdtool librrds-perl librrd-dev"));
+
+			// Install webinterface only on one node
+			st.add(Tools.execOnUI("apt-get install -q -y ganglia-webfrontend"));
+
+			// Ensure daemons have not been started
+			st.add(exec("/etc/init.d/ganglia-monitor stop"));
+			st.add(exec("/etc/init.d/gmetad stop"));
+		} else if (pm == PACKAGE_MANAGER.YUM) {
+			// Install monitoring base
+			st.add(exec("yum -y install ganglia ganglia-gmond ganglia-gmetad "));
+
+			// Install webinterface only on one node
+			st.add(Tools.execOnUI("yum -y install ganglia-web"));
+
+			// Ensure daemons have not been started
+			st.add(exec("/etc/init.d/gmond stop"));
+			st.add(exec("/etc/init.d/gmetad stop"));
+			
+		}	else {
+				log.error("PACKAGE MANAGER not supported: " + pm.toString());
+			}
 		return st;
 	}
 
@@ -68,9 +87,9 @@ public class Ganglia {
 	/**
 	 * Start daemons
 	 */
-	public static List<Statement> start() {
+	public static List<Statement> start(PACKAGE_MANAGER pm) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
-		
+		if (pm == PACKAGE_MANAGER.APT) {
 		// In case node is containing UI, it should enable module_rewrite for apache2
 		st.add(Tools.execOnUI("a2enmod rewrite"));
 		
@@ -79,6 +98,16 @@ public class Ganglia {
 		
 		st.add(exec("/etc/init.d/ganglia-monitor restart"));
 		st.add(exec("/etc/init.d/gmetad restart"));
+		} else if (pm == PACKAGE_MANAGER.YUM) {
+			// In case node is containing UI, it should restart apache2 webserver
+			st.add(Tools.execOnUI("/etc/init.d/httpd restart"));
+
+			st.add(exec("/etc/init.d/gmond restart"));
+			st.add(exec("/etc/init.d/gmetad restart"));
+			
+		} else {
+			log.error("PACKAGE MANAGER not supported: " + pm.toString());
+		}
 		return st;
 	}
 	
