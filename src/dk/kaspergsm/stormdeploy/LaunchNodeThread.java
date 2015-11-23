@@ -26,6 +26,7 @@ import dk.kaspergsm.stormdeploy.userprovided.Configuration;
  */
 public class LaunchNodeThread extends Thread {
 	private static Logger log = LoggerFactory.getLogger(LaunchNodeThread.class);
+	private Configuration _config;
 	private String _instanceType, _clustername, _region, _placementgroup, _image, _username;
 	private Set<NodeMetadata> _newNodes = null;
 	private List<Statement> _initScript;
@@ -52,6 +53,7 @@ public class LaunchNodeThread extends Thread {
 	 *            If contain(daemons, zk) then write this zkMyId on init
 	 */
 	public LaunchNodeThread(ComputeService compute, Configuration config, String instanceType, String clustername, List<Integer> nodeids, List<String> daemons, Integer zkMyId) {
+		_config = config;
 		_region = config.getDeploymentLocation();
 		_placementgroup = config.getPlacementGroup();
 		_username = config.getImageUsername();
@@ -84,8 +86,8 @@ public class LaunchNodeThread extends Thread {
 					.inboundPorts(Tools.getPortsToOpen())
 					.userMetadata("daemons", _daemons.toString())
 					.runScript(new StatementList(_initScript))
-					.overrideLoginCredentials(Tools.getPrivateKeyCredentials(_username))
-					.authorizePublicKey(Tools.getPublicKey());
+					.overrideLoginCredentials(Tools.getPrivateKeyCredentials(_config))
+					.authorizePublicKey(Tools.getPublicKey(_config));
 			Template template = _compute.templateBuilder()
 					.hardwareId(_instanceType)
 					.locationId(_region)

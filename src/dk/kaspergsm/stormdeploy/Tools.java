@@ -60,12 +60,12 @@ public class Tools {
 	/**
 	 * Get login credentials (contains private ssh key)
 	 */
-	public static LoginCredentials getPrivateKeyCredentials(String username) {
+	public static LoginCredentials getPrivateKeyCredentials(Configuration config) {
 		try {			
 			return LoginCredentials.builder()
-					.user(username)
+					.user(config.getImageUsername())
 					.authenticateSudo(false)
-					.privateKey(Files.toString(new File(System.getProperty("user.home") + "/.ssh/id_rsa"), UTF_8).trim())
+					.privateKey(Files.toString(new File(config.getPrivateKeyPath()), UTF_8).trim())
 					.build();
 		} catch (Exception ex) {
 			log.error("Error reading ssh keys", ex);
@@ -77,9 +77,9 @@ public class Tools {
 	/**
 	 * Get public key (raw)
 	 */
-	public static String getPublicKey() {
+	public static String getPublicKey(Configuration config) {
 		try {
-			return Files.toString(new File(System.getProperty("user.home") + "/.ssh/id_rsa.pub"), UTF_8).trim();
+			return Files.toString(new File(config.getPublicKeyPath()), UTF_8).trim();
 		} catch (IOException ex) {
 			log.error("Error reading ssh keys", ex);
 			System.exit(0);
@@ -113,15 +113,15 @@ public class Tools {
 	/**
 	 * Run set of queued commands now
 	 */
-	public static void executeOnNodes(List<Statement> commands, boolean runAsRoot, String clustername, ComputeService compute, String username) throws RunScriptOnNodesException, InterruptedException, ExecutionException, TimeoutException {
+	public static void executeOnNodes(List<Statement> commands, boolean runAsRoot, String clustername, ComputeService compute, Configuration config) throws RunScriptOnNodesException, InterruptedException, ExecutionException, TimeoutException {
 		compute.runScriptOnNodesMatching(
 				NodePredicates.runningInGroup(clustername),
 				new StatementList(commands),
 				new RunScriptOptions()
 					.nameTask("Setup")
-				 	.overrideLoginCredentials(Tools.getPrivateKeyCredentials(username))
+				 	.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config))
 				 	.wrapInInitScript(true)
-				 	.overrideLoginUser(username)
+				 	.overrideLoginUser(config.getImageUsername())
 				 	.blockOnComplete(true)
 				 	.runAsRoot(runAsRoot));
 	}

@@ -29,6 +29,8 @@ public class Configuration {
 			"packagemanager",
 			"region",
 			"placementgroup",
+			"private-key-path",
+			"public-key-path",
 			"memory-monitor",
 			"remote-exec-preconfig",
 			"remote-exec-postconfig"));
@@ -260,4 +262,19 @@ public class Configuration {
 			return PACKAGE_MANAGER.YUM;
 		return PACKAGE_MANAGER.APT;
 	}
+	
+	public String getPrivateKeyPath() {
+		String pkPath = getRawConfigValue("private-key-path");
+		if (pkPath != null)
+			return pkPath;
+		return System.getProperty("user.home") + "/.ssh/id_rsa";
+	}
+
+	public String getPublicKeyPath() {
+		String pkPath = getRawConfigValue("public-key-path");
+		if (pkPath != null)
+			return pkPath;
+		return System.getProperty("user.home") + "/.ssh/id_rsa.pub";
+	}
+	
 }

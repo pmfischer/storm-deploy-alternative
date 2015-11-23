@@ -46,7 +46,7 @@ public class NodeConfiguration {
 		// Download and configure storm-deploy-alternative (before anything with supervision is started)
 		commands.addAll(StormDeployAlternative.download());
 		commands.addAll(StormDeployAlternative.writeConfigurationFiles(Tools.getWorkDir() + "conf" + File.separator + "configuration.yaml", Tools.getWorkDir() + "conf" + File.separator + "credential.yaml"));
-		commands.addAll(StormDeployAlternative.writeLocalSSHKeys());
+		commands.addAll(StormDeployAlternative.writeLocalSSHKeys(config));
 		
 		// Download Storm
 		commands.addAll(Storm.download(config.getStormRemoteLocation()));

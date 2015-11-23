@@ -1,8 +1,6 @@
 package dk.kaspergsm.stormdeploy.commands;
 
 import static org.jclouds.scriptbuilder.domain.Statements.exec;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,8 +14,6 @@ import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.StatementList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import dk.kaspergsm.stormdeploy.Tools;
 import dk.kaspergsm.stormdeploy.configurations.NodeConfiguration;
 import dk.kaspergsm.stormdeploy.userprovided.Configuration;
@@ -140,14 +136,12 @@ public class ScaleOutCluster {
 						.overrideLoginUser(config.getImageUsername())
 						.userMetadata("daemons", "[WORKER]")
 						.runScript(new StatementList(initScript))
-						.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config.getImageUsername()))
-						.authorizePublicKey(Files.toString(new File(System.getProperty("user.home") + "/.ssh/id_rsa.pub"), Charsets.UTF_8)));
+						.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config))
+						.authorizePublicKey(Tools.getPublicKey(config)));
 			return (Set<NodeMetadata>) computeContext.getComputeService().createNodesInGroup(clustername, numInstances, templateBuilder.build());
 		} catch (IllegalArgumentException ex) {
 			log.error("Error when starting instance(s)", ex);
 		} catch (RunNodesException ex) {
-			log.error("Error when starting instance(s)", ex);
-		} catch (IOException ex) {
 			log.error("Error when starting instance(s)", ex);
 		}
 		return null;

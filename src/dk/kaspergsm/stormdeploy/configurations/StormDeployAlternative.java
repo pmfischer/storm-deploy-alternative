@@ -2,11 +2,11 @@ package dk.kaspergsm.stormdeploy.configurations;
 
 import static org.jclouds.scriptbuilder.domain.Statements.exec;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.jclouds.scriptbuilder.domain.Statement;
 import dk.kaspergsm.stormdeploy.Tools;
+import dk.kaspergsm.stormdeploy.userprovided.Configuration;
 
 /**
  * Contains all methods to configure SnormDeployAlternative on remote node
@@ -37,11 +37,11 @@ public class StormDeployAlternative {
 		return st;
 	}
 	
-	public static List<Statement> writeLocalSSHKeys() {
+	public static List<Statement> writeLocalSSHKeys(Configuration config) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
 		st.add(exec("mkdir ~/.ssh/"));
-		st.addAll(Tools.echoFile(Tools.getHomeDir() + ".ssh" + File.separator + "id_rsa", "~/.ssh/id_rsa"));
-		st.addAll(Tools.echoFile(Tools.getHomeDir() + ".ssh" + File.separator + "id_rsa.pub", "~/.ssh/id_rsa.pub"));
+		st.addAll(Tools.echoFile(config.getPrivateKeyPath(), "~/.ssh/id_rsa"));
+		st.addAll(Tools.echoFile(config.getPublicKeyPath(), "~/.ssh/id_rsa.pub"));
 		return st;
 	}
 }
