@@ -54,7 +54,7 @@ public class Ganglia {
 	/**
 	 * Configure Ganglia
 	 */
-	public static List<Statement> configure(String clustername, String uiHostname) {
+	public static List<Statement> configure(String clustername, String uiHostname, PACKAGE_MANAGER pm) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
 		
 		// Strip top of configurationfile
@@ -69,18 +69,24 @@ public class Ganglia {
 		// In case node is containing UI, it should be deaf = no!
 		st.add(Tools.execOnUI("sed \"s/deaf = yes/deaf = no/\" -i \"/etc/ganglia/gmond.conf\""));
 		
-		// In case node is containing UI, it should create /ganglia alias for apache2 server
-		st.add(Tools.execOnUI("cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/"));
-		
 		// In case node is containing UI, it should add cluster as datasource
 		st.add(Tools.execOnUI("echo data_source \"" + clustername + "\" localhost >> /etc/ganglia/gmetad.conf"));
-		
+		if (pm == PACKAGE_MANAGER.APT) {
+		// In case node is containing UI, it should create /ganglia alias for apache2 server
+		st.add(Tools.execOnUI("cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/"));
+
 		// In case node is containing UI, it should modify auto_system to disabled. This allows events to be added externally to Ganglia
 		st.add(Tools.execOnUI("sed \"s/$conf\\['auth_system'\\] = 'readonly'/$conf\\['auth_system'\\] = 'disabled'/\" -i \"/usr/share/ganglia-webfrontend/conf_default.php\""));
 		
 		// In case node is containing UI, it should make events.json writable by apache webserver
 		st.add(Tools.execOnUI("chmod 777 /var/lib/ganglia-web/conf/events.json"));
-		
+		}
+		if (pm == PACKAGE_MANAGER.YUM) {			
+				st.add(Tools.execOnUI("echo  \"Alias /ganglia /usr/share/ganglia\" > /etc/httpd/conf.d/ganglia.conf"));
+				st.add(Tools.execOnUI("echo  \"<Location /ganglia>\"  >> /etc/httpd/conf.d/ganglia.conf"));
+				st.add(Tools.execOnUI("echo  \"Require all granted\" >> /etc/httpd/conf.d/ganglia.conf"));
+				st.add(Tools.execOnUI("echo  \"</Location>\" >> /etc/httpd/conf.d/ganglia.conf"));
+		}
 		return st;
 	}
 	

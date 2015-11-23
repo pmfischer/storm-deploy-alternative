@@ -68,7 +68,7 @@ public class NodeConfiguration {
 		commands.addAll(Storm.configure(nimbusHostname, zookeeperHostnames, drpcHostnames, config.getImageUsername()));
 		
 		// Configure Ganglia
-		commands.addAll(Ganglia.configure(clustername, uiHostname));
+		commands.addAll(Ganglia.configure(clustername, uiHostname,pm));
 				
 		// Execute custom code, if user provided (post config)
 		if (config.getRemoteExecPostConfig().size() > 0)
