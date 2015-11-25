@@ -22,14 +22,14 @@ public class Ganglia {
 	/**
 	 * Install Ganglia
 	 */
-	public static List<Statement> install(PACKAGE_MANAGER pm) {
+	public static List<Statement> install(PACKAGE_MANAGER pm, String username) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
 		if (pm == PACKAGE_MANAGER.APT) {
 			// Install monitoring base
 			st.add(exec("apt-get install -y ganglia-monitor gmetad rrdtool librrds-perl librrd-dev"));
 
 			// Install webinterface only on one node
-			st.add(Tools.execOnUI("apt-get install -q -y ganglia-webfrontend"));
+			st.add(Tools.execOnUI("apt-get install -q -y ganglia-webfrontend",username));
 
 			// Ensure daemons have not been started
 			st.add(exec("/etc/init.d/ganglia-monitor stop"));
@@ -39,7 +39,7 @@ public class Ganglia {
 			st.add(exec("yum -y install ganglia ganglia-gmond ganglia-gmetad "));
 
 			// Install webinterface only on one node
-			st.add(Tools.execOnUI("yum -y install ganglia-web"));
+			st.add(Tools.execOnUI("yum -y install ganglia-web", username));
 
 			// Ensure daemons have not been started
 			st.add(exec("/etc/init.d/gmond stop"));
@@ -54,7 +54,7 @@ public class Ganglia {
 	/**
 	 * Configure Ganglia
 	 */
-	public static List<Statement> configure(String clustername, String uiHostname, PACKAGE_MANAGER pm) {
+	public static List<Statement> configure(String clustername, String uiHostname, PACKAGE_MANAGER pm, String username) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
 		
 		// Strip top of configurationfile
@@ -67,25 +67,25 @@ public class Ganglia {
 		st.add(exec("cat /etc/ganglia/stripped_gmond.conf >> /etc/ganglia/gmond.conf"));
 		
 		// In case node is containing UI, it should be deaf = no!
-		st.add(Tools.execOnUI("sed \"s/deaf = yes/deaf = no/\" -i \"/etc/ganglia/gmond.conf\""));
+		st.add(Tools.execOnUI("sed \"s/deaf = yes/deaf = no/\" -i \"/etc/ganglia/gmond.conf\"",username));
 		
 		// In case node is containing UI, it should add cluster as datasource
-		st.add(Tools.execOnUI("echo data_source \"" + clustername + "\" localhost >> /etc/ganglia/gmetad.conf"));
+		st.add(Tools.execOnUI("echo data_source \"" + clustername + "\" localhost >> /etc/ganglia/gmetad.conf",username));
 		if (pm == PACKAGE_MANAGER.APT) {
 		// In case node is containing UI, it should create /ganglia alias for apache2 server
-		st.add(Tools.execOnUI("cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/"));
+		st.add(Tools.execOnUI("cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/",username));
 
 		// In case node is containing UI, it should modify auto_system to disabled. This allows events to be added externally to Ganglia
-		st.add(Tools.execOnUI("sed \"s/$conf\\['auth_system'\\] = 'readonly'/$conf\\['auth_system'\\] = 'disabled'/\" -i \"/usr/share/ganglia-webfrontend/conf_default.php\""));
+		st.add(Tools.execOnUI("sed \"s/$conf\\['auth_system'\\] = 'readonly'/$conf\\['auth_system'\\] = 'disabled'/\" -i \"/usr/share/ganglia-webfrontend/conf_default.php\"",username));
 		
 		// In case node is containing UI, it should make events.json writable by apache webserver
-		st.add(Tools.execOnUI("chmod 777 /var/lib/ganglia-web/conf/events.json"));
+		st.add(Tools.execOnUI("chmod 777 /var/lib/ganglia-web/conf/events.json",username));
 		}
 		if (pm == PACKAGE_MANAGER.YUM) {			
-				st.add(Tools.execOnUI("echo  \"Alias /ganglia /usr/share/ganglia\" > /etc/httpd/conf.d/ganglia.conf"));
-				st.add(Tools.execOnUI("echo  \"<Location /ganglia>\"  >> /etc/httpd/conf.d/ganglia.conf"));
-				st.add(Tools.execOnUI("echo  \"Require all granted\" >> /etc/httpd/conf.d/ganglia.conf"));
-				st.add(Tools.execOnUI("echo  \"</Location>\" >> /etc/httpd/conf.d/ganglia.conf"));
+				st.add(Tools.execOnUI("echo  \"Alias /ganglia /usr/share/ganglia\" > /etc/httpd/conf.d/ganglia.conf",username));
+				st.add(Tools.execOnUI("echo  \"<Location /ganglia>\"  >> /etc/httpd/conf.d/ganglia.conf",username));
+				st.add(Tools.execOnUI("echo  \"Require all granted\" >> /etc/httpd/conf.d/ganglia.conf",username));
+				st.add(Tools.execOnUI("echo  \"</Location>\" >> /etc/httpd/conf.d/ganglia.conf",username));
 		}
 		return st;
 	}
@@ -93,20 +93,20 @@ public class Ganglia {
 	/**
 	 * Start daemons
 	 */
-	public static List<Statement> start(PACKAGE_MANAGER pm) {
+	public static List<Statement> start(PACKAGE_MANAGER pm, String username) {
 		ArrayList<Statement> st = new ArrayList<Statement>();
 		if (pm == PACKAGE_MANAGER.APT) {
 		// In case node is containing UI, it should enable module_rewrite for apache2
-		st.add(Tools.execOnUI("a2enmod rewrite"));
+		st.add(Tools.execOnUI("a2enmod rewrite",username));
 		
 		// In case node is containing UI, it should restart apache2 webserver
-		st.add(Tools.execOnUI("/etc/init.d/apache2 restart"));
+		st.add(Tools.execOnUI("/etc/init.d/apache2 restart",username));
 		
 		st.add(exec("/etc/init.d/ganglia-monitor restart"));
 		st.add(exec("/etc/init.d/gmetad restart"));
 		} else if (pm == PACKAGE_MANAGER.YUM) {
 			// In case node is containing UI, it should restart apache2 webserver
-			st.add(Tools.execOnUI("/etc/init.d/httpd restart"));
+			st.add(Tools.execOnUI("/etc/init.d/httpd restart",username));
 
 			st.add(exec("/etc/init.d/gmond restart"));
 			st.add(exec("/etc/init.d/gmetad restart"));

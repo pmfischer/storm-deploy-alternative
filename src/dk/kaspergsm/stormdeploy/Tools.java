@@ -114,17 +114,22 @@ public class Tools {
 	 * Run set of queued commands now
 	 */
 	public static void executeOnNodes(List<Statement> commands, boolean runAsRoot, String clustername, ComputeService compute, Configuration config) throws RunScriptOnNodesException, InterruptedException, ExecutionException, TimeoutException {
+		String taskname = "Setup";
+		if (!runAsRoot)
+			taskname ="User-Setup";
 		compute.runScriptOnNodesMatching(
 				NodePredicates.runningInGroup(clustername),
 				new StatementList(commands),
 				new RunScriptOptions()
-					.nameTask("Setup")
+					.nameTask(taskname)
 				 	.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config))
 				 	.wrapInInitScript(true)
 				 	.overrideLoginUser(config.getImageUsername())
 				 	.blockOnComplete(true)
 				 	.runAsRoot(runAsRoot));
 	}
+	
+	
 	
 	public static String getWorkDir() {
 		return _workDir;
@@ -242,7 +247,7 @@ public class Tools {
 		return "if [ " + cond + " ]; then " + exec + "; fi";
 	}
 	
-	public static Statement execOnUI(String cmd) {
-		return exec("case $(head -n 1 ~/daemons) in *UI*) " + cmd + " ;; esac");
+	public static Statement execOnUI(String cmd,String username) {
+		return exec("case $(head -n 1 /home/"+username+"/daemons) in *UI*) " + cmd + " ;; esac");
 	}
 }

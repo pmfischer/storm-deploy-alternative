@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -86,7 +87,7 @@ public class Deploy {
 		try {
 			log.info("Configuring instance(s)");
 			Tools.executeOnNodes(
-					NodeConfiguration.getCommands(
+					NodeConfiguration.getRootCommands(
 							clustername,
 							credentials,
 							config, 
@@ -97,7 +98,21 @@ public class Deploy {
 					true,
 					clustername, 
 					computeContext.getComputeService(),
-					config.getImageUsername());
+					config);
+			Tools.executeOnNodes(
+					NodeConfiguration.getCommands(
+							clustername,
+							credentials,
+							config, 
+							getNewInstancesPrivateIp(config, "ZK", newNodes), 
+							getNewInstancesPrivateIp(config, "DRPC", newNodes), 
+							getNimbusNode(config, newNodes).getPrivateAddresses().iterator().next(), 
+							getUINode(config, newNodes).getPrivateAddresses().iterator().next()),
+					false,
+					clustername, 
+					computeContext.getComputeService(),
+					config);
+			
 		} catch (RunScriptOnNodesException ex) {
 			log.error("Problem configuring instance(s)", ex);
 		} catch (InterruptedException ex) {

@@ -4,11 +4,16 @@ import static org.jclouds.scriptbuilder.domain.Statements.exec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunNodesException;
+import org.jclouds.compute.RunScriptOnNodesException;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeMetadata.Status;
 import org.jclouds.compute.domain.TemplateBuilder;
+import org.jclouds.compute.options.RunScriptOptions;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.StatementList;
@@ -69,7 +74,7 @@ public class ScaleOutCluster {
 		 */
 		Set<NodeMetadata> newWorkerNodes = startWorkerNodesNow(
 				clustername, 
-				NodeConfiguration.getCommands(
+				NodeConfiguration.getRootCommands(
 						clustername,
 						credentials, 
 						config, 
@@ -83,13 +88,29 @@ public class ScaleOutCluster {
 					region, 
 					computeContext,
 					config);		
-		
+
+		for (NodeMetadata nm: newWorkerNodes) {
+			computeContext.getComputeService().runScriptOnNode(nm.getId(), new StatementList(NodeConfiguration.getCommands(
+					clustername,
+					credentials,
+					config,
+					getInstancesPrivateIp(existingZookeeper), 
+					getInstancesPrivateIp(existingDRPC), 
+					nimbus.getPrivateAddresses().iterator().next(), 
+					ui.getPrivateAddresses().iterator().next())),				
+					new RunScriptOptions()
+					.nameTask("Setup-User")
+				 	.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config))
+				 	.wrapInInitScript(true)
+				 	.overrideLoginUser(config.getImageUsername())
+				 	.blockOnComplete(true)
+				 	.runAsRoot(false));
+		}
 		
 		/**
 		 * Update attachment
 		 */
 		Attach.attach(clustername, computeContext);
-		
 		
 		/**
 		 * Print final info
@@ -119,8 +140,8 @@ public class ScaleOutCluster {
 			
 			// Create initScript
 			ArrayList<Statement> initScript = new ArrayList<Statement>();
-			initScript.add(exec("echo WORKER > ~/daemons"));
-			initScript.add(exec("echo \"" + instanceType.toString() + "\" > ~/.instance-type"));
+			initScript.add(exec("echo WORKER > /home/"+config.getImageUsername()+"/daemons"));
+			initScript.add(exec("echo \"" + instanceType.toString() + "\" > /home/"+config.getImageUsername()+".instance-type"));
 			initScript.addAll(commands);
 			
 			log.info("Starting " + numInstances + " instance(s) of type " + instanceType);

@@ -16,12 +16,7 @@ public class NodeConfiguration {
 	
 	public static List<Statement> getCommands(String clustername, Credential credentials, Configuration config, List<String> zookeeperHostnames, List<String> drpcHostnames, String nimbusHostname, String uiHostname) {
 		List<Statement> commands = new ArrayList<Statement>();
-		
-		PACKAGE_MANAGER pm = config.getPackageManager();
-		
-		// Install system tools
-		commands.addAll(SystemTools.init(pm));
-
+				
 		// Configure IAM credentials
 		// FIXME: this is lame.  Want to use an IAM role for the machines
 		// but jclouds doesn't support IAM yet.  Can probably make it works
@@ -30,12 +25,10 @@ public class NodeConfiguration {
 		commands.addAll(AWSCredentials.configure(config.getDeploymentLocation(), credentials.get_ec2_identity(), credentials.get_ec2_credential()));
 		
 		// Install and configure s3cmd (to allow communication with Amazon S3)
-		commands.addAll(S3CMD.install(pm));
 		commands.addAll(S3CMD.configure(credentials.get_ec2_identity(), credentials.get_ec2_credential()));
 		
 		// Install and configure ec2-ami-tools (only if optional x509 credentials have been defined)
 		if (credentials.get_ec2_X509CertificatePath() != null && credentials.get_ec2_X509CertificatePath().length() > 0 && credentials.get_ec2_X509PrivateKeyPath() != null && credentials.get_ec2_X509PrivateKeyPath().length() > 0) {
-			commands.addAll(EC2Tools.install(pm));
 			commands.addAll(EC2Tools.configure(credentials.get_ec2_X509CertificatePath(), credentials.get_ec2_X509PrivateKeyPath(), config.getDeploymentLocation(), clustername));
 		}
 		
@@ -54,8 +47,6 @@ public class NodeConfiguration {
 		// Download Zookeeper
 		commands.addAll(Zookeeper.download(config.getZKLocation()));
 		
-		// Download Ganglia
-		commands.addAll(Ganglia.install(pm));
 		
 		// Execute custom code, if user provided (pre config)
 		if (config.getRemoteExecPreConfig().size() > 0)
@@ -67,8 +58,6 @@ public class NodeConfiguration {
 		// Configure Storm (update configurationfiles)
 		commands.addAll(Storm.configure(nimbusHostname, zookeeperHostnames, drpcHostnames, config.getImageUsername()));
 		
-		// Configure Ganglia
-		commands.addAll(Ganglia.configure(clustername, uiHostname,pm));
 				
 		// Execute custom code, if user provided (post config)
 		if (config.getRemoteExecPostConfig().size() > 0)
@@ -80,14 +69,13 @@ public class NodeConfiguration {
 		 */
 		
 		//String username = config.getImageUsername();
-		String username = "root";
+		String username = config.getImageUsername();
 		commands.addAll(Zookeeper.startDaemonSupervision(username));
 		commands.addAll(Storm.startNimbusDaemonSupervision(username));
 		commands.addAll(Storm.startSupervisorDaemonSupervision(username));
 		commands.addAll(Storm.startUIDaemonSupervision(username));
 		commands.addAll(Storm.startDRPCDaemonSupervision(username));
 		commands.addAll(Storm.startLogViewerDaemonSupervision(username));
-		commands.addAll(Ganglia.start(pm));
 		
 		/**
 		 * Start memory manager (to help share resources among Java processes)
@@ -98,6 +86,32 @@ public class NodeConfiguration {
 			commands.addAll(StormDeployAlternative.runMemoryMonitor(config.getImageUsername()));
 		
 		// Return commands
+		return commands;
+	}
+	
+	public static List<Statement> getRootCommands(String clustername, Credential credentials, Configuration config, List<String> zookeeperHostnames, List<String> drpcHostnames, String nimbusHostname, String uiHostname) {
+		List<Statement> commands = new ArrayList<Statement>();
+
+		PACKAGE_MANAGER pm = config.getPackageManager();
+		
+		// Install system tools
+		commands.addAll(SystemTools.init(pm));
+
+		// Install and configure s3cmd (to allow communication with Amazon S3)
+		commands.addAll(S3CMD.install(pm));
+
+		// Install and configure ec2-ami-tools (only if optional x509 credentials have been defined)
+		if (credentials.get_ec2_X509CertificatePath() != null && credentials.get_ec2_X509CertificatePath().length() > 0 && credentials.get_ec2_X509PrivateKeyPath() != null && credentials.get_ec2_X509PrivateKeyPath().length() > 0) {
+			commands.addAll(EC2Tools.install(pm));
+		}
+
+		// Install & configure Ganglia
+		commands.addAll(Ganglia.install(pm,config.getImageUsername()));
+		commands.addAll(Ganglia.configure(clustername, uiHostname,pm,config.getImageUsername()));
+
+		commands.addAll(Ganglia.start(pm,config.getImageUsername()));
+
+		
 		return commands;
 	}
 }
