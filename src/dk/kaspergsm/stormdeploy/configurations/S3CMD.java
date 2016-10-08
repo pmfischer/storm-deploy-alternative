@@ -27,8 +27,9 @@ public class S3CMD {
 			st.add(exec("apt-get update && apt-get install s3cmd"));
 			return st;
 		} else if (pm == PACKAGE_MANAGER.YUM){
-			st.add(exec("wget -O/etc/yum.repos.d/s3tools.repo wget http://s3tools.org/repo/RHEL_6/s3tools.repo"));
-			st.add(exec("yum -y install s3cmd"));			
+			//st.add(exec("wget -O/etc/yum.repos.d/s3tools.repo wget http://s3tools.org/repo/RHEL_6/s3tools.repo"));
+			//st.add(exec("yum -y install s3cmd"));
+			st.add(exec("pip install s3cmd"));
 		} else {
 			log.error("PACKAGE MANAGER not supported: " + pm.toString());
 		}

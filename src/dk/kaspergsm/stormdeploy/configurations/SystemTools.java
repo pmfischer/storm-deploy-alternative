@@ -57,7 +57,7 @@ public class SystemTools {
 			// enable EPEL
 			st.add(exec("yum-config-manager --enable epel"));
 			// Java 7 is installed by default
-			
+			//st.add(exec("yum install openjdk8"));
 			// Install git
 			st.add(exec("yum -y install git"));
 			

@@ -29,6 +29,7 @@ public class Configuration {
 			"packagemanager",
 			"region",
 			"placementgroup",
+			"mount-local-storage",
 			"private-key-path",
 			"public-key-path",
 			"memory-monitor",
@@ -114,7 +115,7 @@ public class Configuration {
 	 * Get placement group, if any exists
 	 */
 	public String getPlacementGroup() {
-		return getRawConfigValue("placement-group");
+		return getRawConfigValue("placementgroup");
 	}
 	
 	
@@ -160,6 +161,7 @@ public class Configuration {
 	public String getStormRemoteLocation() {
 		String version = getRawConfigValue("storm-version");
 		String baseURI = "https://s3-eu-west-1.amazonaws.com/storm-releases/";
+		String mirrorURI = "http://mirror.cc.columbia.edu/pub/software/apache/storm/";
 		if (version.equals("0.8.2")) {
 			return baseURI+"storm-0.8.2.tar.gz";
 		} else if (version.equals("0.9.0.1")) {
@@ -173,9 +175,19 @@ public class Configuration {
 		} else if (version.equals("0.9.5")) {
 			return baseURI+"apache-storm-0.9.5.tar.gz";
 		} else if (version.equals("0.9.6")) {
-			return "http://mirror.cc.columbia.edu/pub/software/apache/storm/apache-storm-0.9.6/apache-storm-0.9.6.tar.gz";
+			return mirrorURI+"/apache-storm-"+version+"apache-storm-"+version+".tar.gz";
 		} else if (version.equals("0.10.0")) {
-			return "http://mirror.cc.columbia.edu/pub/software/apache/storm/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz";
+			return mirrorURI+"/apache-storm-0.10.0/apache-storm-0.10.0.tar.gz";
+		} else if (version.equals("0.10.1")) {
+			return mirrorURI+"/apache-storm-0.10.1/apache-storm-0.10.1.tar.gz";
+		} else if (version.equals("0.10.2")) {
+			return mirrorURI+"/apache-storm-0.10.2/apache-storm-0.10.2.tar.gz";
+		} else if (version.equals("1.0.0")) {
+			return mirrorURI+"/apache-storm-1.0.0/apache-storm-1.0.0.tar.gz";
+		} else if (version.equals("1.0.1")) {
+			return mirrorURI+"/apache-storm-1.0.1/apache-storm-1.0.1.tar.gz";
+		} else if (version.equals("1.0.2")) {
+			return mirrorURI+"apache-storm-"+version+"/apache-storm-"+version+".tar.gz";
 		} else {
 			log.info("Storm version " + version + " not currently supported!");
 		}
@@ -276,5 +288,10 @@ public class Configuration {
 			return pkPath;
 		return System.getProperty("user.home") + "/.ssh/id_rsa.pub";
 	}
-	
+	public boolean isMountLocalStorage() {
+		String pm = getRawConfigValue("mount-local-storage");
+		if (pm.equalsIgnoreCase("true"))
+			return true;
+		return false;
+	}
 }

@@ -1,0 +1,19 @@
+#
+# Amazon EC2 example cluster configuration
+#
+minitest1:
+    - storm-version "0.9.6"					# Version of Storm
+    - zk-version "3.4.6"					# Version of Zookeeper
+    - image "us-east-1/ami-60b6c60a"	 			# Amazon Linux / CentOS
+    - image-username "ec2-user"
+    - packagemanager "yum"
+    - region "us-east-1"					# Region
+    - placementgroup "StormCluster"
+    - private-key-path "C:\cygwin64\home\Peter\.ssh\snsa-cygwin"
+    - public-key-path "C:\cygwin64\home\Peter\.ssh\snsa-cygwin.pub"      
+    - t2.micro {ZK, WORKER, MASTER, UI} 			# Request service
+      # - t2.micro {ZK, WORKER}					# Request service
+      # - t2.micro {ZK, WORKER}					# Request service
+      # - t2.micro {WORKER}					# Request service
+    - remote-exec-preconfig {cd ~, echo hey > hey.txt}
+    - remote-exec-postconfig {}

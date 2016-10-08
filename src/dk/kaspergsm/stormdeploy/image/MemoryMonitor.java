@@ -13,7 +13,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.tools.attach.VirtualMachine;
+//import com.sun.tools.attach.VirtualMachine;
 
 /**
  * Continuously monitors free memory on node
@@ -159,7 +159,7 @@ class MemoryMonitor {
 	private static void GCExternalProcess(String pid) {
 		System.out.println("Asked process with pid " + pid + " to do GC");
 		
-		VirtualMachine vm = null;
+		/*VirtualMachine vm = null;
 		JMXConnector connector = null;
 
 		try {
@@ -188,6 +188,6 @@ class MemoryMonitor {
 				vm.detach();
 		} catch (Exception ex) {
 			log.error("Problem", ex);
-		}
+		}*/
 	}
 }

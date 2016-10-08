@@ -11,6 +11,7 @@ import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.ec2.compute.options.EC2TemplateOptions;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.StatementList;
 import static org.jclouds.scriptbuilder.domain.Statements.exec;
@@ -87,15 +88,20 @@ public class LaunchNodeThread extends Thread {
 					.userMetadata("daemons", _daemons.toString())
 					.runScript(new StatementList(_initScript))
 					.overrideLoginCredentials(Tools.getPrivateKeyCredentials(_config))
-					.authorizePublicKey(Tools.getPublicKey(_config));
+					.authorizePublicKey(Tools.getPublicKey(_config));		
 			Template template = _compute.templateBuilder()
 					.hardwareId(_instanceType)
 					.locationId(_region)
 					.imageId(_image)
 					.options(to).build();
-			if (template.getOptions() instanceof AWSEC2TemplateOptions && _placementgroup != null){
+			if (template.getOptions() instanceof AWSEC2TemplateOptions) {
 				AWSEC2TemplateOptions opt = (AWSEC2TemplateOptions) template.getOptions();
-				opt.placementGroup(_placementgroup);
+				if (_placementgroup != null){
+					opt.placementGroup(_placementgroup);
+				}
+					opt.securityGroups("SSH+Storm UI");
+					if (_config.isMountLocalStorage())
+						opt.mapEphemeralDeviceToDeviceName("/dev/sdb", "ephemeral0");		
 			}
 			_newNodes = (Set<NodeMetadata>) _compute.createNodesInGroup(
 					_clustername,
