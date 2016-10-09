@@ -33,7 +33,7 @@ public class Storm {
 		st.add(exec("touch storm.yaml"));
 		
 		// Add nimbus.host
-		st.add(exec("echo nimbus.host: \"" + hostname + "\" >> storm.yaml"));
+		st.add(exec("echo nimbus.seeds: [\"" + hostname + "\"] >> storm.yaml"));
 		
 		// Add storm.zookeeper.servers
 		st.add(exec("echo storm.zookeeper.servers: >> storm.yaml"));

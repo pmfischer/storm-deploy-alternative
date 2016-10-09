@@ -99,7 +99,7 @@ public class LaunchNodeThread extends Thread {
 				if (_placementgroup != null){
 					opt.placementGroup(_placementgroup);
 				}
-					opt.securityGroups("SSH+Storm UI");
+					opt.securityGroups("unrestricted");
 					if (_config.isMountLocalStorage())
 						opt.mapEphemeralDeviceToDeviceName("/dev/sdb", "ephemeral0");		
 			}

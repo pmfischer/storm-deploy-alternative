@@ -1,5 +1,7 @@
 package dk.kaspergsm.stormdeploy.configurations;
 
+import static org.jclouds.scriptbuilder.domain.Statements.exec;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +95,13 @@ public class NodeConfiguration {
 		List<Statement> commands = new ArrayList<Statement>();
 
 		PACKAGE_MANAGER pm = config.getPackageManager();
+		
+		// format and mount local storage
+		if (config.isMountLocalStorage()) {
+			commands.add(exec("mkfs.ext4 /dev/sdb"));
+			commands.add(exec("chown ec2-user /mnt"));
+			commands.add(exec("mount /dev/sdb /mnt"));
+		}
 		
 		// Install system tools
 		commands.addAll(SystemTools.init(pm));
