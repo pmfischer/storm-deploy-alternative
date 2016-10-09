@@ -25,6 +25,7 @@ public class Configuration {
 	private HashSet<String> _allConfigurationSettings = new HashSet<String>(Arrays.asList(
 			"storm-version", 
 			"zk-version",
+			"scheduler-webdownload-path",
 			"image","image-username",
 			"packagemanager",
 			"region",
@@ -116,6 +117,14 @@ public class Configuration {
 	 */
 	public String getPlacementGroup() {
 		return getRawConfigValue("placementgroup");
+	}
+	
+	/**
+	 * return the scheduler path, must be downloadable from everywhere
+	 * @return
+	 */
+	public String getSchedulerPath() {
+		return getRawConfigValue("scheduler-webdownload-path");
 	}
 	
 	

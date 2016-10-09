@@ -48,9 +48,9 @@ public class Storm {
 		}
 
 		// Add supervisor metadata
-		st.add(exec("echo supervisor.scheduler.meta: >> storm.yaml"));
+		/*st.add(exec("echo supervisor.scheduler.meta: >> storm.yaml"));
 		st.add(exec("instancetype=$(cat ~/.instance-type)"));
-		st.add(exec("echo \"  instancetype: \\\"$instancetype\\\"\" >> storm.yaml"));
+		st.add(exec("echo \"  instancetype: \\\"$instancetype\\\"\" >> storm.yaml"));*/
 		
 		// Change owner of storm directory
 		st.add(exec("chown -R " + userName + ":" + userName + " ~/storm"));

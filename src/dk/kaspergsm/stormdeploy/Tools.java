@@ -23,6 +23,7 @@ import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunScriptOnNodesException;
 import org.jclouds.compute.config.ComputeServiceProperties;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.options.RunScriptOptions;
 import org.jclouds.compute.predicates.NodePredicates;
 import org.jclouds.domain.LoginCredentials;
@@ -117,6 +118,7 @@ public class Tools {
 		String taskname = "Setup";
 		if (!runAsRoot)
 			taskname ="User-Setup";
+
 		compute.runScriptOnNodesMatching(
 				NodePredicates.runningInGroup(clustername),
 				new StatementList(commands),
@@ -127,6 +129,42 @@ public class Tools {
 				 	.overrideLoginUser(config.getImageUsername())
 				 	.blockOnComplete(true)
 				 	.runAsRoot(runAsRoot));
+	}
+	
+	public static void setSchedulerMetaData(HashMap<Integer, NodeMetadata> nodes, ComputeService compute, Configuration config) {
+		int nodeCount=0;
+		for(int node: nodes.keySet()) {
+			NodeMetadata n = nodes.get(node);
+			String nodeId = nodes.get(node).getId();
+			List<Statement> commands = new ArrayList<Statement>();
+			
+			String nodeName="";
+			if (n.getUserMetadata().containsKey("daemons") && n.getUserMetadata().get("daemons").contains("MASTER")) {
+				// this is the master node
+				nodeName = "spout";
+				String scheduler = config.getSchedulerPath();
+				commands.addAll(Tools.download("~/storm/lib/", scheduler, false, false, "Storm-Scheduler.jar"));
+			} else if (n.getUserMetadata().containsKey("daemons") && n.getUserMetadata().get("daemons").contains("WORKER")) {
+				// RecBolt, assign node0....nodeX
+				nodeName = "node"+nodeCount;
+				nodeCount++;
+			} else {
+				continue;
+			}
+			commands.add(exec("cd ~/storm/conf/"));
+			commands.add(exec("echo storm.scheduler: \\\"de.unifreiburg.informatik.websci.scheduler.DistributedFixedScheduler\\\" >> storm.yaml"));
+			commands.add(exec("echo supervisor.scheduler.meta: >> storm.yaml"));
+			commands.add(exec("echo -n \"  \" >> storm.yaml"));
+			commands.add(exec("echo name: \\\""+nodeName+"\\\" >> storm.yaml"));
+			compute.runScriptOnNode(nodeId, new StatementList(commands), new RunScriptOptions()
+					.nameTask("User-Setup-Scheduler")
+				 	.overrideLoginCredentials(Tools.getPrivateKeyCredentials(config))
+				 	.wrapInInitScript(false)
+				 	.overrideLoginUser(config.getImageUsername())
+				 	.blockOnComplete(true)
+				 	.runAsRoot(false));
+		}
+		
 	}
 	
 	
