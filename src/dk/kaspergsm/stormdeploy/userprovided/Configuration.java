@@ -299,7 +299,7 @@ public class Configuration {
 	}
 	public boolean isMountLocalStorage() {
 		String pm = getRawConfigValue("mount-local-storage");
-		if (pm.equalsIgnoreCase("true"))
+		if (pm!=null && pm.equalsIgnoreCase("true"))
 			return true;
 		return false;
 	}

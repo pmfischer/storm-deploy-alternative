@@ -99,8 +99,8 @@ public class NodeConfiguration {
 		// format and mount local storage
 		if (config.isMountLocalStorage()) {
 			commands.add(exec("mkfs.ext4 /dev/sdb"));
-			commands.add(exec("chown ec2-user /mnt"));
 			commands.add(exec("mount /dev/sdb /mnt"));
+			commands.add(exec("chmod 777 /mnt"));
 		}
 		
 		// Install system tools
