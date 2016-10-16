@@ -32,6 +32,8 @@ public class Storm {
 		st.add(exec("cd ~/storm/conf/"));
 		st.add(exec("touch storm.yaml"));
 		
+		// local dir:
+		st.add(exec("echo storm.local.dir: \\\"/home/ec2-user/storm-local\\\" >> storm.yaml"));
 		// Add nimbus.host
 		st.add(exec("echo nimbus.seeds: [\"" + hostname + "\"] >> storm.yaml"));
 		
