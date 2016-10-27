@@ -42,6 +42,8 @@ public class StormDeployAlternative {
 		st.add(exec("mkdir ~/.ssh/"));
 		st.addAll(Tools.echoFile(config.getPrivateKeyPath(), "~/.ssh/id_rsa"));
 		st.addAll(Tools.echoFile(config.getPublicKeyPath(), "~/.ssh/id_rsa.pub"));
+		// set permissions to 700, otherwise nodes cant communicate via ssh
+		st.add(exec("chmod -R 700 ~/.ssh/"));
 		return st;
 	}
 }
