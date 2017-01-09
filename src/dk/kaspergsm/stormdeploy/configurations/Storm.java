@@ -36,7 +36,9 @@ public class Storm {
 		st.add(exec("echo storm.local.dir: \\\"/home/ec2-user/storm-local\\\" >> storm.yaml"));
 		// Add nimbus.host
 		st.add(exec("echo nimbus.seeds: [\"" + hostname + "\"] >> storm.yaml"));
-		
+		st.add(exec("echo 'supervisor.worker.start.timeout.secs: 10000' >> storm.yaml"));
+		st.add(exec("echo 'supervisor.worker.timeout.secs: 10000' >> storm.yaml"));
+
 		// Add storm.zookeeper.servers
 		st.add(exec("echo storm.zookeeper.servers: >> storm.yaml"));
 		for (int i = 1; i <= zkNodesHostname.size(); i++)
