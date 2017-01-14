@@ -11,7 +11,11 @@ import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.ec2.EC2Api;
 import org.jclouds.ec2.compute.options.EC2TemplateOptions;
+import org.jclouds.ec2.domain.Attachment;
+import org.jclouds.ec2.domain.Volume;
+import org.jclouds.ec2.domain.Volume.Status;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.StatementList;
 import static org.jclouds.scriptbuilder.domain.Statements.exec;
@@ -101,12 +105,47 @@ public class LaunchNodeThread extends Thread {
 				}
 					opt.securityGroups("unrestricted");
 					if (_config.isMountLocalStorage())
-						opt.mapEphemeralDeviceToDeviceName("/dev/sdb", "ephemeral0");		
+						opt.mapEphemeralDeviceToDeviceName("/dev/sdb", "ephemeral0");
 			}
 			_newNodes = (Set<NodeMetadata>) _compute.createNodesInGroup(
 					_clustername,
 					_nodeids.size(),template
 					);
+			if (_config.getEBSStorageSize() > 0) {
+				for (NodeMetadata node: _newNodes) {
+
+					// Get AWS EC2 API
+					EC2Api ec2Api = _compute.getContext().unwrapApi(EC2Api.class);
+					
+					// Create a volume
+					Volume volume = ec2Api.getElasticBlockStoreApi().get()
+							.createVolumeInAvailabilityZone(node.getLocation().getId(), _config.getEBSStorageSize());
+
+					Status volStat = volume.getStatus();
+					
+					int waitTime = 0;
+					//while (volStat==Status.CREATING) {
+						System.out.println("Waiting for EBS");
+						try {
+							Thread.sleep(5000);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						waitTime++;
+						volStat = volume.getStatus();
+					//}
+					
+					String provId = node.getProviderId();
+
+					// Attach to instance
+					@SuppressWarnings("unused")
+					Attachment attachment = ec2Api.getElasticBlockStoreApi().get()
+							.attachVolumeInRegion(_region, volume.getId(), provId, "/dev/sdx");
+					System.out.println("Attached EBS");
+				}
+			}
+			
 		} catch (NoSuchElementException ex) {
 			// happens often when hardwareId is not found. List all possible hardware types
 			if (ex.getMessage().toLowerCase().contains("hardwareid") && ex.getMessage().toLowerCase().contains("not found")) {

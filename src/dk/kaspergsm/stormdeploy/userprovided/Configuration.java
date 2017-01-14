@@ -31,6 +31,7 @@ public class Configuration {
 			"region",
 			"placementgroup",
 			"mount-local-storage",
+			"mount-ebs-storage-size",
 			"private-key-path",
 			"public-key-path",
 			"memory-monitor",
@@ -303,4 +304,20 @@ public class Configuration {
 			return true;
 		return false;
 	}
+	
+	public int getEBSStorageSize() {
+		String ebsVolSize = getRawConfigValue("mount-ebs-storage-size");
+		if (ebsVolSize != null) {
+			int ebsSize = Integer.valueOf(0);
+			try {
+				ebsSize = Integer.valueOf(ebsVolSize);
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				log.warn("Invalid volume size for EBS Storage: "+ebsVolSize);
+			}
+			return ebsSize;
+		}
+		return 0;
+	}
+
 }

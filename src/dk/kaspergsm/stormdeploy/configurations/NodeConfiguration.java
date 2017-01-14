@@ -102,6 +102,14 @@ public class NodeConfiguration {
 			commands.add(exec("mount /dev/sdb /mnt"));
 			commands.add(exec("chmod 777 /mnt"));
 		}
+		// format and mount ebs storage
+		if (config.getEBSStorageSize() > 0) {
+			commands.add(exec("mkdir /net"));
+			commands.add(exec("mkfs.ext4 /dev/sdx"));
+			commands.add(exec("mount /dev/sdx /net"));
+			commands.add(exec("chmod 777 /net"));
+		}
+
 		
 		// Install system tools
 		commands.addAll(SystemTools.init(pm));
