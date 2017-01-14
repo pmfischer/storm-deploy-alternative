@@ -113,7 +113,13 @@ public class Deploy {
 					computeContext.getComputeService(),
 					config);
 			
+			// scheduler meta data must be set before starting Storm
 			Tools.setSchedulerMetaData(newNodes, computeContext.getComputeService(),config);
+			Tools.executeOnNodes(NodeConfiguration.runStorm(config),
+					false,
+					clustername, 
+					computeContext.getComputeService(),
+					config);
 			
 		} catch (RunScriptOnNodesException ex) {
 			log.error("Problem configuring instance(s)", ex);

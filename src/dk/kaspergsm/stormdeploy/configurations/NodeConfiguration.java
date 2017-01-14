@@ -65,12 +65,18 @@ public class NodeConfiguration {
 		if (config.getRemoteExecPostConfig().size() > 0)
 			commands.addAll(Tools.runCustomCommands(config.getRemoteExecPostConfig()));
 		
+		//String username = config.getImageUsername();
 		
+		
+		// Return commands
+		return commands;
+	}
+	
+	public static List<Statement> runStorm(Configuration config) {
 		/**
 		 * Start daemons (only on correct nodes, and under supervision)
 		 */
-		
-		//String username = config.getImageUsername();
+		List<Statement> commands = new ArrayList<Statement>();
 		String username = config.getImageUsername();
 		commands.addAll(Zookeeper.startDaemonSupervision(username));
 		commands.addAll(Storm.startNimbusDaemonSupervision(username));
@@ -86,7 +92,6 @@ public class NodeConfiguration {
 		 */
 		if (config.executeMemoryMonitor())
 			commands.addAll(StormDeployAlternative.runMemoryMonitor(config.getImageUsername()));
-		
 		// Return commands
 		return commands;
 	}
