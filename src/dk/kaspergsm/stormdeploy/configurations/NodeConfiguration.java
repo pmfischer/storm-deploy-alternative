@@ -108,11 +108,11 @@ public class NodeConfiguration {
 			commands.add(exec("chmod 777 /mnt"));
 		}
 		// format and mount ebs storage
-		if (config.getEBSStorageSize() > 0) {
-			commands.add(exec("mkdir /net"));
+		else if (config.getEBSStorageSize() > 0) {
+			commands.add(exec("mkdir /mnt"));
 			commands.add(exec("mkfs.ext4 /dev/sdx"));
-			commands.add(exec("mount /dev/sdx /net"));
-			commands.add(exec("chmod 777 /net"));
+			commands.add(exec("mount /dev/sdx /mnt"));
+			commands.add(exec("chmod 777 /mnt"));
 		}
 
 		
